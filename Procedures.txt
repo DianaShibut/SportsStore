@@ -1,0 +1,195 @@
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetOrders]    Script Date: 15.09.2021 12:58:18 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetOrders]
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT * FROM Orders 
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetOrdersLines]    Script Date: 15.09.2021 12:58:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetOrdersLines]
+@id bigint
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT [a].[Id], [a].[OrderId], [a].[ProductId], [a].[Quantity]
+		FROM [OrderLines] AS [a]
+		LEFT JOIN [Orders] AS [b] ON [a].[OrderId] = [b].[Id]
+		LEFT JOIN [Products] AS [c] ON [a].[ProductId] = [c].[Id]
+		WHERE [a].[OrderId] = @id
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetProduct]    Script Date: 15.09.2021 12:59:28 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetProduct]
+@id bigint
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT * FROM Products WHERE Id = @id
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetOrder]    Script Date: 15.09.2021 12:59:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetOrder]
+@id bigint
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT * FROM Orders WHERE Id = @id
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetCategory]    Script Date: 15.09.2021 13:01:16 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetCategory]
+@id bigint
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT * FROM Categories WHERE Id = @id
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[GetProducts]    Script Date: 15.09.2021 13:01:38 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GetProducts]
+AS
+	BEGIN
+	SET NOCOUNT ON
+		SELECT * FROM Products
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[AddOrUpdateOrder]    Script Date: 15.09.2021 13:01:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[AddOrUpdateOrder]
+@id bigint,
+@address nvarchar(50),
+@customerName nvarchar(50),
+@shipped bit,
+@state nvarchar(50),
+@zipCode nvarchar(50)
+AS
+	BEGIN     
+	SET NOCOUNT ON
+            IF (@id = 0)
+			BEGIN
+				INSERT INTO Orders (Address, CustomerName, Shipped, State, ZipCode)
+				VALUES (@address, @customerName, @shipped, @state, @zipCode)
+				SELECT * FROM Orders WHERE Id=SCOPE_IDENTITY()
+			END
+			ELSE
+				UPDATE Orders
+				SET Address = @address, CustomerName = @customerName,
+				Shipped = @shipped, State = @state, ZipCode = @zipCode
+				WHERE Id=@id
+				SELECT * FROM Orders WHERE Id=@id
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[AddOrUpdateOrderLines]    Script Date: 15.09.2021 13:02:14 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[AddOrUpdateOrderLines]
+@orderId bigint,
+@currentOrderId bigint,
+@productId bigint,
+@orderLineId bigint,
+@quantity int
+AS
+	BEGIN
+	SET NOCOUNT ON
+            IF (@orderId = 0)
+				INSERT INTO OrderLines(OrderId, ProductId, Quantity)
+				VALUES (@currentOrderId, @productId, @quantity)
+			ELSE
+				IF EXISTS
+				(
+					SELECT *
+					FROM OrderLines
+					WHERE Id=@orderLineId
+				)
+				BEGIN
+					UPDATE OrderLines
+					SET OrderId = @orderId, ProductId = @productId,
+					Quantity = @quantity
+					WHERE Id=@orderId
+				END 
+				ELSE 
+					INSERT INTO OrderLines(OrderId, ProductId, Quantity)
+					VALUES (@currentOrderId, @productId, @quantity)
+	END
+
+-------------------------------------------------------------------
+
+USE [SportsStore]
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteOrder]    Script Date: 15.09.2021 13:02:30 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[DeleteOrder]
+@id decimal
+AS
+	BEGIN
+	SET NOCOUNT ON
+		DELETE FROM Orders 
+		WHERE Orders.Id=@id
+	END
+
+-------------------------------------------------------------------
+
+

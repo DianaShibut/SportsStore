@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Order>
+
+<h3 class="p-2 bg-primary text-white text-center">Orders</h3>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-1 font-weight-bold">Id</div>
+        <div class="col font-weight-bold">Name</div>
+        <div class="col font-weight-bold">Zip</div>
+        <div class="col font-weight-bold">Total</div>
+        <div class="col font-weight-bold">Profit</div>
+        <div class="col-1 font-weight-bold">Status</div>
+        <div class="col-3"></div>
+    </div>
+    <div class="rows">
+        <div class="row placeholder p-2">
+            <div class="col-12 text-center">
+                <h5>No Orders</h5>
+            </div>
+        </div>
+        @foreach (Order o in Model)
+        {
+<section>
+    <div class="row p-2">
+        <div class="col-1">@o.Id</div>
+        <div class="col">@o.CustomerName</div>
+        <div class="col">@o.ZipCode</div>
+        <div class="col">
+            @o.Lines.Sum(l => l.Quantity
+                                                                                        * l.Product.RetailPrice)
+        </div>
+        <div class="col">
+            @o.Lines.Sum(l => l.Quantity
+                                                                                            * (l.Product.RetailPrice - l.Product.PurchasePrice))
+        </div>
+        <div class="col-1">@(o.Shipped ? "Shipped" : "Pending")</div>
+        <div class="col-3 text-right">
+            <form asp-action="DeleteOrder" data-ajax-method="post" data-ajax="true" ajax-success="SuccessDelete">
+                <input type="hidden" name="Id" id="orderId" value="@o.Id" />
+                <button asp-action="EditOrder" asp-route-id="@o.Id"
+                        class="btn btn-outline-primary">
+                    Edit
+                </button>
+                <button id="deleteButton @o.Id"  class="btn btn-outline-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</section>}
+<script type="text/javascript">
+    function SuccessDelete(data) {
+        alert("Ok");
+        //$("#deleteButton " + data.id).parentsUntil('.rows', 'section').remove();
+    }
+    </script>
+
+    </div>
+</div>
+<div class="text-center">
+    <a asp-action="EditOrder" class="btn btn-primary">Create</a>
+</div>
